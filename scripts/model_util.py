@@ -5,6 +5,8 @@ import shutil
 import json
 import stat
 import tqdm
+import os
+import glob
 from collections import OrderedDict
 from multiprocessing.pool import ThreadPool as Pool
 
@@ -14,14 +16,22 @@ import modules.scripts as scripts
 
 
 # MAX_MODEL_COUNT = shared.cmd_opts.addnet_max_model_count or 5
-MAX_MODEL_COUNT = shared.cmd_opts.addnet_max_model_count if hasattr(shared.cmd_opts, "addnet_max_model_count") else 5
+print(f'shared.cmd_opts.addnet_max_model_count: {shared.cmd_opts.addnet_max_model_count}')
+
 LORA_MODEL_EXTS = [".pt", ".ckpt", ".safetensors"]
-re_legacy_hash = re.compile("\(([0-9a-f]{8})\)$")  # matches 8-character hashes, new hash has 12 characters
+lora_models_dir = os.path.join(scripts.basedir(), "models/lora")
+os.makedirs(lora_models_dir, exist_ok=True)
+
+# Count number of .pt, .ckpt, .safetensors files in lora_models_dir...
+model_count = sum(len(glob.glob1(lora_models_dir,"*"+ext)) for ext in LORA_MODEL_EXTS)
+print(f'model_count: {model_count}')
+MAX_MODEL_COUNT = model_count if model_count else 5  # Set MAX_MODEL_COUNT based on file count or default to 5...
+print(f'MAX_MODEL_COUNT: {MAX_MODEL_COUNT}')
+
+re_legacy_hash = re.compile("\(([0-9a-f]{8})\)$")  # matches 8-character hashes, new hash has 12 characters...
 lora_models = {}  # "My_Lora(abcdef123456)" -> "C:/path/to/model.safetensors"
 lora_model_names = {}  # "my_lora" -> "My_Lora(My_Lora(abcdef123456)"
 legacy_model_names = {}
-lora_models_dir = os.path.join(scripts.basedir(), "models/lora")
-os.makedirs(lora_models_dir, exist_ok=True)
 
 
 def is_safetensors(filename):
