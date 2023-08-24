@@ -60,13 +60,24 @@ class Script(scripts.Script):
                     self.infotext_fields.append((separate_weights, "AddNet Separate Weights"))
 
                 for i in range(MAX_MODEL_COUNT):
+                    cur_model_name = list(lora_models.keys())[i]
+                    print(f'current lora model name: {cur_model_name}')
+                    print(f'current lora model path found: {model_util.lora_models.get(cur_model_name, "None")}')
+                
                     with FormRow(variant="compact"):
                         module = gr.Dropdown(["LoRA"], label=f"Network module {i+1}", value="LoRA")
-                        model = gr.Dropdown(list(lora_models.keys()), label=f"Model {i+1}", value="None")
+                        model = gr.Dropdown(list(lora_models.keys()), label=f"Model {i+1}", value=cur_model_name)
+                        print(f'model: {model.value}')
+                
                         with gr.Row(visible=False):
-                            model_path = gr.Textbox(value="None", interactive=False, visible=False)
+                            model_path = gr.Textbox(value=model_util.lora_models.get(cur_model_name, "None"), interactive=False, visible=False)
+                        
                         model.change(
-                            lambda module, model, i=i: model_util.lora_models.get(model, "None"),
+                            lambda module, model_val, i=i: (
+                                print(f"Lambda function triggered with {module} and {model_val}"),
+                                print(f'in .change lambda method: {model_val}'), 
+                                model_util.lora_models.get(model_val, "None")
+                            ),
                             inputs=[module, model],
                             outputs=[model_path],
                         )
@@ -216,6 +227,7 @@ class Script(scripts.Script):
             self.latest_model_hash = p.sd_model.sd_model_hash
 
             for module, model, weight_unet, weight_tenc in self.latest_params:
+                print(f'latest params: {model}')
                 if model is None or model == "None" or len(model) == 0:
                     continue
                 if weight_unet == 0 and weight_tenc == 0:
