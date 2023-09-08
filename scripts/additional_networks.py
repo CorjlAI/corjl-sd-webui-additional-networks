@@ -52,7 +52,7 @@ class Script(scripts.Script):
         with gr.Group():
             with gr.Accordion("Additional Networks", open=False):
                 with gr.Row():
-                    enabled = gr.Checkbox(label="Enable", value=False)
+                    enabled = gr.Checkbox(label="Enable", value=True)
                     ctrls.append(enabled)
                     self.infotext_fields.append((enabled, "AddNet Enabled"))
                     separate_weights = gr.Checkbox(label="Separate UNet/Text Encoder weights", value=False)
@@ -66,7 +66,8 @@ class Script(scripts.Script):
                 
                     with FormRow(variant="compact"):
                         module = gr.Dropdown(["LoRA"], label=f"Network module {i+1}", value="LoRA")
-                        model = gr.Dropdown(list(lora_models.keys()), label=f"Model {i+1}", value=cur_model_name)
+                        model = gr.Dropdown(choices=[list(lora_models.keys())[i]], label=f"Model {i+1}", value=cur_model_name)
+
                         print(f'model: {model.value}')
                 
                         with gr.Row(visible=False):
